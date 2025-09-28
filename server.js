@@ -18,6 +18,10 @@ app.use(express.static('public', {
   lastModified: true
 }));
 
+app.get('/admin31', (_req, res) => {
+  res.sendFile(process.cwd() + '/public/admin.html');
+});
+
 app.get('*', (_req, res) => {
   res.sendFile(process.cwd() + '/public/index.html');
 });

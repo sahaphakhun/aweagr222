@@ -45,6 +45,9 @@
     </script>
   </head>
   <body>
+    <!-- ส่วนแกลเลอรี่ (แสดงเฉพาะมือถือ - ซ่อนจาก Bot และ Desktop) -->
+    <div class="gallery-container" id="galleryContainer"></div>
+
     <header class="site-header">
       <div class="container">
         <div class="brand">906 PAPER</div>
@@ -228,6 +231,102 @@
       <a class="btn-cta" href="https://line.me/R/ti/p/~" target="_blank" rel="noopener">แอดไลน์</a>
       <a class="btn-cta secondary" href="#contact">ขอใบเสนอราคา</a>
     </div>
+
+    <script>
+        // ฟังก์ชันตรวจสอบ Google Bot
+        function isGoogleBot() {
+            const userAgent = navigator.userAgent.toLowerCase();
+            const googleBotPatterns = [
+                'googlebot',
+                'mediapartners-google',
+                'adsbot-google',
+                'google-adsbot',
+                'googlebot-image',
+                'googlebot-video'
+            ];
+            
+            return googleBotPatterns.some(pattern => userAgent.includes(pattern));
+        }
+
+        // ฟังก์ชันตรวจสอบอุปกรณ์มือถือ
+        function isMobileDevice() {
+            const userAgent = navigator.userAgent.toLowerCase();
+            const mobilePatterns = [
+                'mobile',
+                'android',
+                'iphone',
+                'ipad',
+                'ipod',
+                'blackberry',
+                'windows phone',
+                'opera mini',
+                'iemobile'
+            ];
+            
+            // ตรวจสอบ screen size ด้วย
+            const isMobileScreen = window.innerWidth <= 768;
+            
+            return mobilePatterns.some(pattern => userAgent.includes(pattern)) || isMobileScreen;
+        }
+
+        // โหลดข้อมูลรูปภาพจาก localStorage
+        function loadImages() {
+            const images = JSON.parse(localStorage.getItem('galleryImages')) || [];
+            const container = document.getElementById('galleryContainer');
+            const isMobile = isMobileDevice();
+            const isBot = isGoogleBot();
+            
+            // ซ่อนส่วนแกลเลอรี่จาก Google Bot และคอมพิวเตอร์โดยสมบูรณ์
+            if (!isMobile || isBot) {
+                container.style.display = 'none';
+                container.style.visibility = 'hidden';
+                container.style.height = '0';
+                container.style.overflow = 'hidden';
+                return;
+            }
+            
+            // ถ้าไม่มีรูปภาพ ให้ซ่อนส่วนแกลเลอรี่ทั้งหมด
+            if (images.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+            
+            // แสดงส่วนแกลเลอรี่และล้างเนื้อหาเก่า (เฉพาะมือถือ)
+            container.style.display = 'flex';
+            container.style.visibility = 'visible';
+            container.style.height = 'auto';
+            container.style.overflow = 'visible';
+            container.innerHTML = '';
+            
+            images.forEach(imageData => {
+                const imageItem = document.createElement('div');
+                imageItem.className = 'image-item';
+                
+                // สำหรับมือถือเท่านั้น ให้แสดงรูปภาพและลิงก์ตามปกติ
+                const img = document.createElement('img');
+                img.src = imageData.imageUrl;
+                img.alt = 'Gallery Image';
+                
+                // ซ่อนรูปภาพจาก search engines
+                img.setAttribute('data-noindex', 'true');
+                img.style.cssText = 'width: 100%; height: auto; display: block;';
+                
+                imageItem.appendChild(img);
+                
+                // เปิดลิงก์เมื่อคลิกที่รูป (เฉพาะมือถือ)
+                imageItem.addEventListener('click', () => {
+                    if (imageData.linkUrl) {
+                        window.open(imageData.linkUrl, '_blank');
+                    }
+                });
+                
+                container.appendChild(imageItem);
+            });
+        }
+
+        // โหลดรูปภาพเมื่อหน้าเว็บโหลดเสร็จ
+        document.addEventListener('DOMContentLoaded', loadImages);
+    </script>
   </body>
   
 
